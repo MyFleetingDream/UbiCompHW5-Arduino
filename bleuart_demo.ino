@@ -17,6 +17,7 @@
 #include "Adafruit_BLE.h"
 #include "Adafruit_BluefruitLE_SPI.h"
 #include "Adafruit_BluefruitLE_UART.h"
+#include <Adafruit_CircuitPlayground.h>
 
 #include "BluefruitConfig.h"
 
