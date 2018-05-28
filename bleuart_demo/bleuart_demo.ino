@@ -95,6 +95,7 @@ void error(const __FlashStringHelper*err) {
 /**************************************************************************/
 void setup(void)
 {
+  CircuitPlayground.begin();
   while (!Serial);  // required for Flora & Micro
   delay(500);
 
