@@ -61,6 +61,29 @@
     #define MODE_LED_BEHAVIOUR          "MODE"
 /*=========================================================================*/
 
+#define STATE_INITIAL 0
+#define STATE_BLE_CONNECT 1
+#define STATE_SEND_DATA 2
+
+#define STR_LENGTH 6
+#define PAYLOAD_LENGTH 3 * STR_LENGTH
+
+volatile boolean updateFlag;
+
+//Frequency at which the various LEDs/sensor-reads update in Hz
+byte updateFrequency = 2;
+byte ledFrequency = 1;
+
+byte ledDelay;
+byte ledDelayCounter;
+
+byte state = STATE_INITIAL;
+
+float x, y, z;
+char xstr[STR_LENGTH + 1], ystr[STR_LENGTH + 1], zstr[STR_LENGTH + 1];
+char payload[PAYLOAD_LENGTH + 1];
+
+
 // Create the bluefruit object, either software serial...uncomment these lines
 /*
 SoftwareSerial bluefruitSS = SoftwareSerial(BLUEFRUIT_SWUART_TXD_PIN, BLUEFRUIT_SWUART_RXD_PIN);
@@ -87,6 +110,7 @@ void error(const __FlashStringHelper*err) {
   while (1);
 }
 
+
 /**************************************************************************/
 /*!
     @brief  Sets up the HW an the BLE module (this function is called
@@ -95,6 +119,21 @@ void error(const __FlashStringHelper*err) {
 /**************************************************************************/
 void setup(void)
 {
+  ledDelayCounter = 0;
+
+  ledDelay = updateFrequency / (2 * ledFrequency);
+  
+  noInterrupts();           // disable all interrupts
+  TCCR1A = 0;
+  TCCR1B = 0;
+  TCNT1  = 0;
+
+  OCR1A = (8000000 / 256) / updateFrequency; // compare match register 8MHz/256/updateFrequency
+  TCCR1B |= (1 << WGM12);   // CTC mode
+  TCCR1B |= (1 << CS12);    // 256 prescaler
+  TIMSK1 |= (1 << OCIE1A);  // enable timer compare interrupt
+  interrupts();             // enable all interrupts
+  
   CircuitPlayground.begin();
   while (!Serial);  // required for Flora & Micro
   delay(500);
@@ -102,7 +141,9 @@ void setup(void)
   Serial.begin(115200);
   Serial.println(F("Adafruit Bluefruit Command <-> Data Mode Example"));
   Serial.println(F("------------------------------------------------"));
-
+  
+  state = STATE_BLE_CONNECT;
+  
   /* Initialise the module */
   Serial.print(F("Initialising the Bluefruit LE module: "));
 
@@ -154,6 +195,13 @@ void setup(void)
   ble.setMode(BLUEFRUIT_MODE_DATA);
 
   Serial.println(F("******************************"));
+  state = STATE_SEND_DATA;
+}
+
+// Timer fires at updateFrequency Hz
+ISR(TIMER1_COMPA_vect)
+{
+  updateFlag = true;
 }
 
 /**************************************************************************/
@@ -165,6 +213,52 @@ void loop(void)
 {
   // Check for user input
   char n, inputs[BUFSIZE+1];
+
+  if (updateFlag)
+  {
+    // Blink the main red LED at ledFrequency Hz
+    ledDelayCounter++;
+    if (ledDelayCounter == ledDelay)
+    {
+      CircuitPlayground.redLED(digitalRead(CPLAY_REDLED) ^ 1);
+      ledDelayCounter = 0;
+    }
+    
+    x = CircuitPlayground.motionX();
+    dtostrf(x, STR_LENGTH, 2, xstr);
+    y = CircuitPlayground.motionY();
+    dtostrf(y, STR_LENGTH, 2, ystr);
+    z = CircuitPlayground.motionZ();
+    dtostrf(z, STR_LENGTH, 2, zstr);
+    for (int i = 0; i < STR_LENGTH; i++)
+    {
+      payload[i] = xstr[i];
+    }
+    for (int i = STR_LENGTH; i < 2 * STR_LENGTH; i++)
+    {
+      payload[i] = ystr[i - STR_LENGTH];
+    }
+    for (int i = 2 * STR_LENGTH; i < 3 * STR_LENGTH; i++)
+    {
+      payload[i] = zstr[i - 2 * STR_LENGTH];
+    }
+    payload[PAYLOAD_LENGTH] = '\0';
+  
+    Serial.print("x: ");
+    Serial.println(xstr);
+    Serial.print("y: ");
+    Serial.println(ystr);
+    Serial.print("z: ");
+    Serial.println(zstr);
+    Serial.print("payload: ");
+    Serial.println(payload);
+    Serial.println();
+
+    ble.print(payload);
+
+    updateFlag = false;
+  }
+  
 
   if (Serial.available())
   {
