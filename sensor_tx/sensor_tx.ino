@@ -71,7 +71,7 @@
 volatile boolean updateFlag;
 
 //Frequency at which the various LEDs/sensor-reads update in Hz
-byte updateFrequency = 2;
+byte updateFrequency = 50;
 byte ledFrequency = 1;
 
 byte ledDelay;
@@ -82,6 +82,7 @@ byte state = STATE_INITIAL;
 float x, y, z;
 char xstr[STR_LENGTH + 1], ystr[STR_LENGTH + 1], zstr[STR_LENGTH + 1];
 char payload[PAYLOAD_LENGTH + 1];
+int payloadId;
 
 
 // Create the bluefruit object, either software serial...uncomment these lines
@@ -196,6 +197,7 @@ void setup(void)
 
   Serial.println(F("******************************"));
   state = STATE_SEND_DATA;
+  delay(10000);
 }
 
 
@@ -252,10 +254,19 @@ void loop(void)
     Serial.print("z: ");
     Serial.println(zstr);
     Serial.print("payload: ");
-    Serial.println(payload);
+    Serial.print(payloadId);
+    Serial.print(":");
+    Serial.print(payload);
+    Serial.print("|");
+    Serial.println();
     Serial.println();
 
+    ble.print(payloadId);
+    ble.print(":");
     ble.print(payload);
+    ble.print("|");
+    
+    payloadId++;
 
     updateFlag = false;
   }  
