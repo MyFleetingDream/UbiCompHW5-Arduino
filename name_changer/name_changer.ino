@@ -25,7 +25,7 @@
 #endif
 
 #define FACTORYRESET_ENABLE      0
-#define NEW_DEVICE_NAME "NEW_DEVICE_NAME_HERE"
+#define NEW_DEVICE_NAME "Anthony Arduino BLE"
 #define CMD "AT+GAPDEVNAME="
 #define CHANGE_CMD CMD NEW_DEVICE_NAME
 
