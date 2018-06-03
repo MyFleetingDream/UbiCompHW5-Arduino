@@ -122,7 +122,7 @@ void setup(void)
   ledDelayCounter = 0;
 
   ledDelay = updateFrequency / (2 * ledFrequency);
-  
+
   noInterrupts();           // disable all interrupts
   TCCR1A = 0;
   TCCR1B = 0;
@@ -198,6 +198,7 @@ void setup(void)
   state = STATE_SEND_DATA;
 }
 
+
 // Timer fires at updateFrequency Hz
 ISR(TIMER1_COMPA_vect)
 {
@@ -257,8 +258,7 @@ void loop(void)
     ble.print(payload);
 
     updateFlag = false;
-  }
-  
+  }  
 
   if (Serial.available())
   {
