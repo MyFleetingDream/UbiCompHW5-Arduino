@@ -136,8 +136,8 @@ void setup(void)
   interrupts();             // enable all interrupts
   
   CircuitPlayground.begin();
-  while (!Serial);  // required for Flora & Micro
-  delay(500);
+  //while (!Serial);  // required for Flora & Micro
+  //delay(500);
 
   Serial.begin(115200);
   Serial.println(F("Adafruit Bluefruit Command <-> Data Mode Example"));
