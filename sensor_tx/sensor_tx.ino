@@ -197,7 +197,7 @@ void setup(void)
 
   Serial.println(F("******************************"));
   state = STATE_SEND_DATA;
-  delay(10000);
+  delay(5000);
 }
 
 
