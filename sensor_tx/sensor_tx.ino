@@ -270,7 +270,7 @@ void loop(void)
 
     updateFlag = false;
   }  
-
+/*
   if (Serial.available())
   {
     n = Serial.readBytes(inputs, BUFSIZE);
@@ -296,4 +296,5 @@ void loop(void)
     Serial.print(c, HEX);
     Serial.print("] ");
   }
+  */
 }
